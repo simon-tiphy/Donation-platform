@@ -11,5 +11,5 @@ class Config:
     ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "admin1234")
     
     # Additional configurations
-    DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
-    TESTING = os.getenv("TESTING", "False").lower() in ("true", "1", "yes")
+    # DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+    # TESTING = os.getenv("TESTING", "False").lower() in ("true", "1", "yes")

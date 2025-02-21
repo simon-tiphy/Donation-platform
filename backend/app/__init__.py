@@ -13,6 +13,10 @@ bcrypt = Bcrypt()
 def create_app():
     """Create and configure the Flask app."""
     app = Flask(__name__)
+    
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    
 
     # Load configuration from config.py
     app.config.from_object(Config)
@@ -24,7 +28,7 @@ def create_app():
     CORS(app)  # Enable CORS for frontend communication
 
     # Import models to ensure they're registered before migrations
-    from app import models  
+    from app import models
 
     # Register all blueprints dynamically
     from app.routes import register_blueprints
