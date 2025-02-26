@@ -1,37 +1,29 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
-from flask_cors import CORS
-from config import Config  # Import config settings
+from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate  # ✅ Import Flask-Migrate
+from app.config import Config  # ✅ Ensure the correct import
 
-# Initialize extensions
 db = SQLAlchemy()
-migrate = Migrate()
-bcrypt = Bcrypt()
+jwt = JWTManager()
+migrate = Migrate()  # ✅ Add Flask-Migrate instance
 
 def create_app():
-    """Create and configure the Flask app."""
     app = Flask(__name__)
-    
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    app.config.from_object(Config)  # Load configuration
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # ✅ Prevent warnings
 
-    
+    db.init_app(app)  # Bind SQLAlchemy to Flask app
+    jwt.init_app(app)  # Bind JWT to Flask app
+    migrate.init_app(app, db)  # ✅ Bind Flask-Migrate to app and db
 
-    # Load configuration from config.py
-    app.config.from_object(Config)
+    # Import and register blueprints AFTER initializing extensions
+    from app.auth.routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix="/auth")
 
-    # Initialize extensions with the app
-    db.init_app(app)
-    migrate.init_app(app, db)
-    bcrypt.init_app(app)
-    CORS(app)  # Enable CORS for frontend communication
-
-    # Import models to ensure they're registered before migrations
-    from app import models
-
-    # Register all blueprints dynamically
-    from app.routes import register_blueprints
-    register_blueprints(app)
+    # Ensure database tables exist before running
+    with app.app_context():
+        db.create_all()
 
     return app
+
