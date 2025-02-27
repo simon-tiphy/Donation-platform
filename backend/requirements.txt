@@ -1,5 +1,7 @@
 -i https://pypi.org/simple
 alembic==1.14.1; python_version >= '3.8'
+apscheduler==3.11.0; python_version >= '3.8'
+backports.zoneinfo==0.2.1; python_version >= '3.6'
 bcrypt==4.2.1; python_version >= '3.7'
 blinker==1.8.2; python_version >= '3.8'
 click==8.1.8; python_version >= '3.7'
@@ -7,6 +9,7 @@ flask==3.0.3; python_version >= '3.8'
 flask-bcrypt==1.0.1
 flask-cors==5.0.0
 flask-jwt-extended==4.6.0; python_version >= '3.7' and python_version < '4'
+flask-login==0.6.3; python_version >= '3.7'
 flask-migrate==4.1.0; python_version >= '3.6'
 flask-sqlalchemy==3.1.1; python_version >= '3.8'
 greenlet==3.1.1; python_version >= '3.7'
@@ -25,5 +28,6 @@ pyngrok==7.2.3; python_version >= '3.8'
 pyyaml==6.0.2; python_version >= '3.8'
 sqlalchemy==2.0.38; python_version >= '3.7'
 typing-extensions==4.12.2; python_version >= '3.8'
+tzlocal==5.2; python_version >= '3.8'
 werkzeug==3.0.6; python_version >= '3.8'
 zipp==3.20.2; python_version >= '3.8'
