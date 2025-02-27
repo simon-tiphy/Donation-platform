@@ -1,14 +1,14 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from flask_cors import CORS  # ✅ Import CORS
+from flask_cors import CORS
+from flask_login import LoginManager
 from app.config import Config
-from pyngrok import ngrok
 
+# Initialize extensions
 db = SQLAlchemy()
-jwt = JWTManager()
 migrate = Migrate()
+login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
@@ -17,23 +17,32 @@ def create_app():
 
     # Initialize extensions
     db.init_app(app)
-    jwt.init_app(app)
     migrate.init_app(app, db)
-    
-    # ✅ Enable CORS for frontend communication
-    CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins (change this later for security)
+    login_manager.init_app(app)
+
+    # Set login view for unauthorized users
+    login_manager.login_view = "auth.login"
+
+    # Enable CORS for all routes
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    # Import models to ensure availability before first request
+    from app.auth.models import User  # ✅ Import User model
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        """Load user by ID for Flask-Login."""
+        return db.session.get(User, int(user_id))  # ✅ SQLAlchemy 2.x Syntax
 
     # Import and register blueprints
     from app.auth.routes import auth_bp
-    from app.charities.routes import charity_bp
-    
-    app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(charity_bp, url_prefix="/charities")
+    from app.charities.routes import charity_bp  # ✅ Handles charities, beneficiaries, and inventory
+    from app.donations.routes import donation_bp
+    from app.admin.routes import admin_bp
 
-    # ✅ Start ngrok tunnel only in development mode
-    if app.config.get("ENV") == "development":
-        port = 5000
-        public_url = ngrok.connect(port).public_url
-        print(f" * ngrok tunnel running at: {public_url}")
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(charity_bp, url_prefix="/charities")  # ✅ Charity blueprint now handles everything
+    app.register_blueprint(donation_bp, url_prefix="/donations")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     return app

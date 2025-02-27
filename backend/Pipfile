@@ -15,6 +15,8 @@ flask-migrate = "*"
 pyngrok = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
+apscheduler = "*"
+flask-login = "*"
 
 [dev-packages]
 
