@@ -24,7 +24,7 @@ def create_app():
     login_manager.login_view = "auth.login"
 
     # ✅ FULLY GLOBAL CORS SETUP (Allow all routes, methods, and headers)
-    CORS(app, resources={r"/": {"origins": "http://localhost:3000"}}, allow_headers="*", supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, allow_headers="*", supports_credentials=True)
 
     # Import models to ensure availability before first request
     from app.auth.models import User  
