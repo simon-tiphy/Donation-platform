@@ -1,14 +1,16 @@
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_login import LoginManager
+from flask_session import Session  # ✅ Added Flask-Session
 from app.config import Config
 
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+session_manager = Session()  # ✅ Flask-Session for persistent login
 
 def create_app():
     app = Flask(__name__)
@@ -19,12 +21,17 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    session_manager.init_app(app)  # ✅ Initialize Flask-Session
 
     # Set login view for unauthorized users
     login_manager.login_view = "auth.login"
 
-    # ✅ FULLY GLOBAL CORS SETUP (Allow all routes, methods, and headers)
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, allow_headers="*", supports_credentials=True)
+    # ✅ Fully Global CORS (Now allows both localhost & deployed frontend)
+    CORS(
+        app,
+        resources={r"/*": {"origins": ["http://localhost:3000", "https://your-frontend-domain.com"]}},
+        supports_credentials=True,
+    )
 
     # Import models to ensure availability before first request
     from app.auth.models import User  

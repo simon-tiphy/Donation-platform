@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager  # ✅ Import login_manager from app/__init__.py
 from .models import User
@@ -53,6 +53,12 @@ def login():
                 return jsonify({"error": "Account is inactive"}), 403
 
             login_user(user)  # ✅ Flask-Login handles session
+            
+            # ✅ Store user ID in session for persistent login
+            session["user_id"] = user.id
+            session["role"] = user.role
+            session.modified = True  # Ensure session updates
+            
             return jsonify({"message": "Login successful", "user": {"id": user.id, "role": user.role}}), 200
 
         return jsonify({"error": "Invalid credentials"}), 401
@@ -65,6 +71,11 @@ def login():
 @login_required
 def logout():
     logout_user()  # ✅ Logs out the user
+    
+    # ✅ Clear session data
+    session.pop("user_id", None)
+    session.pop("role", None)
+    
     return jsonify({"message": "Logged out successfully"}), 200
 
 
