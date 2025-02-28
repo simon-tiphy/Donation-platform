@@ -23,25 +23,25 @@ def create_app():
     # Set login view for unauthorized users
     login_manager.login_view = "auth.login"
 
-    # Enable CORS for all routes
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # ✅ FULLY GLOBAL CORS SETUP (Allow all routes, methods, and headers)
+    CORS(app, resources={r"/": {"origins": ""}}, allow_headers="*", supports_credentials=True)
 
     # Import models to ensure availability before first request
-    from app.auth.models import User  # ✅ Import User model
+    from app.auth.models import User  
 
     @login_manager.user_loader
     def load_user(user_id):
         """Load user by ID for Flask-Login."""
-        return db.session.get(User, int(user_id))  # ✅ SQLAlchemy 2.x Syntax
+        return db.session.get(User, int(user_id))
 
     # Import and register blueprints
     from app.auth.routes import auth_bp
-    from app.charities.routes import charity_bp  # ✅ Handles charities, beneficiaries, and inventory
+    from app.charities.routes import charity_bp  
     from app.donations.routes import donation_bp
     from app.admin.routes import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(charity_bp, url_prefix="/charities")  # ✅ Charity blueprint now handles everything
+    app.register_blueprint(charity_bp, url_prefix="/charities")  
     app.register_blueprint(donation_bp, url_prefix="/donations")
     app.register_blueprint(admin_bp, url_prefix="/admin")
 
