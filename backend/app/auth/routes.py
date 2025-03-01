@@ -15,7 +15,8 @@ def register():
     try:
         data = request.get_json()
 
-        if not data or not all(key in data for key in ("username", "email", "password")):
+        required_fields = {"username", "email", "password"}
+        if not data or not required_fields.issubset(data):
             return jsonify({"error": "Missing required fields"}), 400
 
         if User.query.filter_by(email=data["email"]).first():
@@ -26,9 +27,9 @@ def register():
         new_user = User(
             username=data["username"],
             email=data["email"],
-            password=data["password"],
             role=role
         )
+        new_user.set_password(data["password"])  # Ensure password hashing
 
         db.session.add(new_user)
         db.session.commit()
@@ -39,10 +40,13 @@ def register():
         return jsonify({"error": "Something went wrong", "details": str(e)}), 500
 
 
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """Log in a user."""
     try:
+        if request.method == "GET":
+            return jsonify({"message": "Please log in"}), 200  # Allows redirection to login
+
         data = request.get_json()
 
         if not data or not all(key in data for key in ("email", "password")):
@@ -50,14 +54,13 @@ def login():
 
         user = User.query.filter_by(email=data["email"]).first()
 
-        if user and user.check_password(data["password"]):
+        if user and user.check_password(data["password"]):  # Ensure hashed password check
             if not user.is_active:
                 return jsonify({"error": "Account is inactive"}), 403
 
-            # Persist session with `remember=True`
             login_user(user, remember=True)
 
-            # Ensure session is stored correctly
+            # Ensure session is correctly stored
             session.permanent = True
             session["role"] = user.role
             session.modified = True  

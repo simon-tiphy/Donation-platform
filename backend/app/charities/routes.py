@@ -7,22 +7,25 @@ from app.auth.models import User
 charity_bp = Blueprint("charity", __name__, url_prefix="/charities")
 
 
-# Apply to be a charity (Only one application per user)
+# ✅ Apply to be a charity (Only users without a charity can apply)
 @charity_bp.route("/apply", methods=["POST"])
 @login_required
 def apply_for_charity():
-    if current_user.role != "charity":
-        return jsonify({"error": "Unauthorized. Only charity users can apply."}), 403
+    if current_user.role == "charity":
+        return jsonify({"error": "You are already registered as a charity."}), 403
 
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid request"}), 400
+
     name = data.get("name")
     description = data.get("description")
     contact_email = data.get("contact_email")
 
-    if not name or not description or not contact_email:
+    if not all([name, description, contact_email]):
         return jsonify({"error": "Name, description, and contact email are required"}), 400
 
-    # Ensure user doesn't already have a charity
+    # Ensure user doesn't already have a pending application
     existing_charity = Charity.query.filter_by(user_id=current_user.id).first()
     if existing_charity:
         return jsonify({"error": "You have already applied for a charity"}), 400
@@ -41,7 +44,7 @@ def apply_for_charity():
     return jsonify({"message": "Charity application submitted for review"}), 201
 
 
-# Admin: Approve or Reject a Charity
+# ✅ Admin: Approve or Reject a Charity
 @charity_bp.route("/approve/<int:charity_id>", methods=["PUT"])
 @login_required
 def approve_charity(charity_id):
@@ -49,10 +52,12 @@ def approve_charity(charity_id):
         return jsonify({"error": "Unauthorized. Only admins can approve charities."}), 403
 
     data = request.get_json()
-    status = data.get("status")  
+    if not data or "status" not in data:
+        return jsonify({"error": "Status is required ('approved' or 'rejected')"}), 400
 
+    status = data["status"].lower()
     if status not in ["approved", "rejected"]:
-        return jsonify({"error": "Status must be 'approved' or 'rejected'"}), 400
+        return jsonify({"error": "Invalid status. Use 'approved' or 'rejected'."}), 400
 
     charity = Charity.query.get(charity_id)
     if not charity:
@@ -61,17 +66,17 @@ def approve_charity(charity_id):
     charity.status = status
     db.session.commit()
 
-    return jsonify({"message": f"Charity {status}"}), 200
+    return jsonify({"message": f"Charity {status} successfully"}), 200
 
 
-# Get all approved charities (for donors)
+# ✅ Get all approved charities (for donors)
 @charity_bp.route("/approved", methods=["GET"])
 def get_approved_charities():
     charities = Charity.query.filter_by(status="approved").all()
     return jsonify([charity.to_dict() for charity in charities]), 200
 
 
-# Get all charities (for admins)
+# ✅ Get all charities (for admins)
 @charity_bp.route("/", methods=["GET"])
 @login_required
 def get_all_charities():
@@ -79,8 +84,12 @@ def get_all_charities():
         return jsonify({"error": "Unauthorized. Only admins can view all charities."}), 403
 
     charities = Charity.query.all()
-    return jsonify([charity.to_dict() for charity in charities]), 200
 
+    # Ensure `to_dict()` method exists on the Charity model
+    try:
+        return jsonify([charity.to_dict() for charity in charities]), 200
+    except AttributeError:
+        return jsonify({"error": "Charity model is missing `to_dict()` method"}), 500
 
 # ------------------------------ BENEFICIARIES ------------------------------ #
 

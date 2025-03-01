@@ -21,7 +21,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    session_manager.init_app(app)  # ✅ Initialize Flask-Session
+    session_manager.init_app(app)  # ✅ Ensure Flask-Session works properly
 
     # Set login view for unauthorized users
     login_manager.login_view = "auth.login"
@@ -33,15 +33,15 @@ def create_app():
         supports_credentials=True,
     )
 
-    # Import models before first request to avoid circular imports
+    # ✅ Import models AFTER `db.init_app` to avoid circular imports
     from app.auth.models import User  
 
     @login_manager.user_loader
     def load_user(user_id):
         """Load user by ID for Flask-Login."""
-        return db.session.get(User, int(user_id))  # ✅ Uses `db.session.get()` (SQLAlchemy 2.x)
+        return db.session.get(User, int(user_id)) if user_id else None  # ✅ Prevents NoneType issues
 
-    # Import and register blueprints
+    # ✅ Import and register blueprints (ensure all exist before registering)
     from app.auth.routes import auth_bp
     from app.charities.routes import charity_bp  
     from app.donations.routes import donation_bp
