@@ -1,11 +1,12 @@
 from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db, login_manager  # ✅ Import login_manager
+from app import db, login_manager
 from .models import User
 
 auth_bp = Blueprint("auth", __name__)
 
-login_manager.login_view = "auth.login"  # Redirect to login if not authenticated
+# Ensure unauthorized users are redirected to login
+login_manager.login_view = "auth.login"
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -20,13 +21,12 @@ def register():
         if User.query.filter_by(email=data["email"]).first():
             return jsonify({"error": "Email already exists"}), 400
 
-        # ✅ Default role to "donor" and ensure lowercase
         role = data.get("role", "donor").lower()
 
         new_user = User(
             username=data["username"],
             email=data["email"],
-            password=data["password"],  # ✅ Hashes password automatically
+            password=data["password"],
             role=role
         )
 
@@ -39,12 +39,9 @@ def register():
         return jsonify({"error": "Something went wrong", "details": str(e)}), 500
 
 
-@auth_bp.route("/login", methods=["GET", "POST"])
+@auth_bp.route("/login", methods=["POST"])
 def login():
     """Log in a user."""
-    if request.method == "GET":
-        return jsonify({"message": "Please log in via POST request"}), 200
-
     try:
         data = request.get_json()
 
@@ -54,15 +51,17 @@ def login():
         user = User.query.filter_by(email=data["email"]).first()
 
         if user and user.check_password(data["password"]):
-            if not user.is_active:  # ✅ Prevent login for inactive users
+            if not user.is_active:
                 return jsonify({"error": "Account is inactive"}), 403
 
-            login_user(user)  # ✅ Flask-Login handles session
-            
-            # ✅ Store only essential session data
+            # Persist session with `remember=True`
+            login_user(user, remember=True)
+
+            # Ensure session is stored correctly
+            session.permanent = True
             session["role"] = user.role
-            session.modified = True  # Ensure session updates
-            
+            session.modified = True  
+
             return jsonify({"message": "Login successful", "user": {"id": user.id, "role": user.role}}), 200
 
         return jsonify({"error": "Invalid credentials"}), 401
@@ -75,11 +74,8 @@ def login():
 @login_required
 def logout():
     """Log out the current user."""
-    logout_user()  # ✅ Logs out the user
-    
-    # ✅ Fully clear session data
-    session.clear()
-    
+    logout_user()
+    session.clear()  # Ensure session is fully cleared
     return jsonify({"message": "Logged out successfully"}), 200
 
 
