@@ -8,6 +8,7 @@ from functools import wraps
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+
 # ✅ Admin role required decorator
 def admin_required(f):
     @wraps(f)
@@ -18,8 +19,9 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 # ✅ Approve or reject a charity
-@admin_bp.route("/approve_charity/<int:charity_id>", methods=["PUT"])
+@admin_bp.route("/approve/<int:charity_id>", methods=["PUT"])
 @admin_required
 def approve_charity(charity_id):
     charity = Charity.query.get(charity_id)
@@ -37,12 +39,14 @@ def approve_charity(charity_id):
 
     return jsonify({"message": f"Charity {charity.name} status updated to {new_status}"}), 200
 
+
 # ✅ Get all users
 @admin_bp.route("/users", methods=["GET"])
 @admin_required
 def get_all_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users]), 200
+
 
 # ✅ Delete a user
 @admin_bp.route("/delete_user/<int:user_id>", methods=["DELETE"])
@@ -55,7 +59,8 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     
-    return jsonify({"message": f"User {user.username} deleted"}), 200
+    return jsonify({"message": f"User {user.username} deleted"}), 200  
+
 
 # ✅ View all donations
 @admin_bp.route("/donations", methods=["GET"])
