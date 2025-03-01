@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db, login_manager  # ✅ Import login_manager from app/__init__.py
+from app import db, login_manager  # ✅ Import login_manager
 from .models import User
 
 auth_bp = Blueprint("auth", __name__)
@@ -10,6 +10,7 @@ login_manager.login_view = "auth.login"  # Redirect to login if not authenticate
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
+    """Register a new user."""
     try:
         data = request.get_json()
 
@@ -38,8 +39,12 @@ def register():
         return jsonify({"error": "Something went wrong", "details": str(e)}), 500
 
 
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    """Log in a user."""
+    if request.method == "GET":
+        return jsonify({"message": "Please log in via POST request"}), 200
+
     try:
         data = request.get_json()
 
@@ -54,8 +59,7 @@ def login():
 
             login_user(user)  # ✅ Flask-Login handles session
             
-            # ✅ Store user ID in session for persistent login
-            session["user_id"] = user.id
+            # ✅ Store only essential session data
             session["role"] = user.role
             session.modified = True  # Ensure session updates
             
@@ -70,19 +74,21 @@ def login():
 @auth_bp.route("/logout", methods=["POST"])
 @login_required
 def logout():
+    """Log out the current user."""
     logout_user()  # ✅ Logs out the user
     
-    # ✅ Clear session data
-    session.pop("user_id", None)
-    session.pop("role", None)
+    # ✅ Fully clear session data
+    session.clear()
     
     return jsonify({"message": "Logged out successfully"}), 200
 
 
 @auth_bp.route("/current-user", methods=["GET"])
-@login_required
 def get_current_user():
     """Get details of the currently logged-in user."""
+    if not current_user.is_authenticated:
+        return jsonify({"error": "User not logged in"}), 401
+
     return jsonify({
         "id": current_user.id,
         "username": current_user.username,
