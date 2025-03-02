@@ -24,10 +24,12 @@ def register():
 
         role = data.get("role", "donor").lower()
 
+        # Ensure password is set properly
         new_user = User(
             username=data["username"],
             email=data["email"],
-            role=role
+            role=role,
+            password=data["password"]  # Ensure password is passed in constructor if required
         )
         new_user.set_password(data["password"])  # Ensure password hashing
 
