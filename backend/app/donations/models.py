@@ -1,6 +1,5 @@
 from datetime import datetime
 from app import db
-from app.charities.models import Charity  # ✅ Import Charity
 
 class Donation(db.Model):
     __tablename__ = "donations"
@@ -13,7 +12,7 @@ class Donation(db.Model):
     anonymous = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # ✅ Update relationships
+    # ✅ Update relationships (use string-based references)
     donor = db.relationship("User", back_populates="donations")
     charity = db.relationship("Charity", back_populates="donations")
 
@@ -25,15 +24,17 @@ class Donation(db.Model):
         self.anonymous = anonymous
 
         # ✅ Auto-update charity's total donations
-        charity = db.session.get(Charity, charity_id)
+        charity = db.session.get(db.Model.metadata.tables["charities"], charity_id)
         if charity:
             charity.total_donations += amount
             db.session.add(charity)
 
     def to_dict(self):
+        """Return a dictionary representation of the Donation object."""
         return {
             "id": self.id,
             "donor_id": None if self.anonymous else self.donor_id,
+            "donor_name": None if self.anonymous else (self.donor.username if self.donor else None),  # ✅ Include donor name
             "charity_id": self.charity_id,
             "charity_name": self.charity.name if self.charity else None,
             "amount": self.amount,

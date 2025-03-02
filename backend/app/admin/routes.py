@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, get_jwt_identity  # ✅ Replace Flask-Login with JWT
+from functools import wraps
 from app import db
 from app.auth.models import User
 from app.charities.models import Charity
 from app.donations.models import Donation
-from functools import wraps
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -12,9 +12,12 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 # ✅ Admin role required decorator
 def admin_required(f):
     @wraps(f)
-    @login_required  # Ensure user is logged in
+    @jwt_required()  # ✅ Require a valid JWT to access this route
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != "admin":
+        current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+        current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
+        if not current_user or current_user.role != "admin":
             return jsonify({"error": "Unauthorized. Admin access required"}), 403
         return f(*args, **kwargs)
     return decorated_function

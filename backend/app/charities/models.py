@@ -28,10 +28,11 @@ class Charity(db.Model):
         self.status = status
 
     def to_dict(self):
+        """Return a dictionary representation of the Charity object."""
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "user_name": self.user.name if self.user else None,
+            "user_name": self.user.username if self.user else None,  # ✅ Use username instead of name
             "name": self.name,
             "description": self.description,
             "contact_email": self.contact_email,
@@ -61,6 +62,7 @@ class Beneficiary(db.Model):
         self.story = story
 
     def to_dict(self):
+        """Return a dictionary representation of the Beneficiary object."""
         return {
             "id": self.id,
             "charity_id": self.charity_id,
@@ -92,6 +94,7 @@ class Inventory(db.Model):
         self.quantity = quantity
 
     def to_dict(self):
+        """Return a dictionary representation of the Inventory object."""
         return {
             "id": self.id,
             "charity_id": self.charity_id,

@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, get_jwt_identity  # ✅ Replace Flask-Login with JWT
 from app import db
 from app.charities.models import Charity, Beneficiary, Inventory
+from app.auth.models import User  # ✅ Import User model for JWT identity
 
 charity_bp = Blueprint("charity", __name__, url_prefix="/charities")
 
@@ -21,21 +22,25 @@ def get_approved_charities():
 
 # ✅ Get the currently logged-in user's charity application
 @charity_bp.route("/my-charity", methods=["GET"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def get_my_charity():
-    charity = Charity.query.filter_by(user_id=current_user.id).first()
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    charity = Charity.query.filter_by(user_id=current_user_id).first()
     if not charity:
         return jsonify({"error": "No charity application found for this user"}), 404
     return jsonify(charity.to_dict()), 200
 
 # ✅ Apply to be a charity (Only one application per user)
 @charity_bp.route("/apply", methods=["POST"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def apply_for_charity():
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
     if current_user.role != "charity":
         return jsonify({"error": "Unauthorized. Only charity users can apply."}), 403
 
-    if Charity.query.filter_by(user_id=current_user.id).first():
+    if Charity.query.filter_by(user_id=current_user_id).first():
         return jsonify({"error": "You have already applied for a charity"}), 400
 
     data = request.get_json()
@@ -50,7 +55,7 @@ def apply_for_charity():
         name=name,
         description=description,
         contact_email=contact_email,
-        user_id=current_user.id,
+        user_id=current_user_id,
         status="pending"
     )
 
@@ -63,11 +68,12 @@ def apply_for_charity():
 
 # ✅ Add a beneficiary (Only charities can add beneficiaries)
 @charity_bp.route("/<int:charity_id>/beneficiaries", methods=["POST"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def add_beneficiary(charity_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
     charity = Charity.query.get_or_404(charity_id)
 
-    if current_user.role != "charity" or charity.user_id != current_user.id:
+    if charity.user_id != current_user_id:
         return jsonify({"error": "Unauthorized. Only the charity owner can add beneficiaries."}), 403
 
     if charity.status != "approved":
@@ -89,17 +95,18 @@ def add_beneficiary(charity_id):
 # ✅ Get all beneficiaries of a charity
 @charity_bp.route("/<int:charity_id>/beneficiaries", methods=["GET"])
 def get_beneficiaries(charity_id):
-    Beneficiary.query.get_or_404(charity_id)
+    Charity.query.get_or_404(charity_id)
     beneficiaries = Beneficiary.query.filter_by(charity_id=charity_id).all()
     return jsonify([b.to_dict() for b in beneficiaries]), 200
 
 # ✅ Update a beneficiary
 @charity_bp.route("/<int:charity_id>/beneficiaries/<int:beneficiary_id>", methods=["PUT"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def update_beneficiary(charity_id, beneficiary_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
     charity = Charity.query.get_or_404(charity_id)
     
-    if current_user.role != "charity" or charity.user_id != current_user.id:
+    if charity.user_id != current_user_id:
         return jsonify({"error": "Unauthorized."}), 403
 
     beneficiary = Beneficiary.query.get_or_404(beneficiary_id)
@@ -115,11 +122,12 @@ def update_beneficiary(charity_id, beneficiary_id):
 
 # ✅ Delete a beneficiary
 @charity_bp.route("/<int:charity_id>/beneficiaries/<int:beneficiary_id>", methods=["DELETE"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def delete_beneficiary(charity_id, beneficiary_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
     charity = Charity.query.get_or_404(charity_id)
 
-    if current_user.role != "charity" or charity.user_id != current_user.id:
+    if charity.user_id != current_user_id:
         return jsonify({"error": "Unauthorized."}), 403
 
     beneficiary = Beneficiary.query.get_or_404(beneficiary_id)
@@ -135,11 +143,12 @@ def delete_beneficiary(charity_id, beneficiary_id):
 
 # ✅ Add inventory for a beneficiary
 @charity_bp.route("/<int:charity_id>/inventory", methods=["POST"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def add_inventory(charity_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
     charity = Charity.query.get_or_404(charity_id)
 
-    if current_user.role != "charity" or charity.user_id != current_user.id:
+    if charity.user_id != current_user_id:
         return jsonify({"error": "Unauthorized."}), 403
 
     data = request.get_json()
@@ -163,14 +172,20 @@ def add_inventory(charity_id):
 # ✅ Get inventory for a charity
 @charity_bp.route("/<int:charity_id>/inventory", methods=["GET"])
 def get_inventory(charity_id):
-    Inventory.query.get_or_404(charity_id)
+    Charity.query.get_or_404(charity_id)
     inventory_items = Inventory.query.filter_by(charity_id=charity_id).all()
     return jsonify([item.to_dict() for item in inventory_items]), 200
 
 # ✅ Delete inventory
 @charity_bp.route("/<int:charity_id>/inventory/<int:inventory_id>", methods=["DELETE"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def delete_inventory(charity_id, inventory_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    charity = Charity.query.get_or_404(charity_id)
+
+    if charity.user_id != current_user_id:
+        return jsonify({"error": "Unauthorized."}), 403
+
     inventory = Inventory.query.get_or_404(inventory_id)
     db.session.delete(inventory)
     db.session.commit()

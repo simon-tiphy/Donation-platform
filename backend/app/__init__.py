@@ -2,15 +2,13 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_login import LoginManager
-from flask_session import Session  # ✅ Flask-Session for persistent login
+from flask_jwt_extended import JWTManager  # ✅ Replace Flask-Login with JWT
 from app.config import Config
 
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
-login_manager = LoginManager()
-session_manager = Session()  # ✅ Flask-Session for persistent login
+jwt = JWTManager()  # ✅ Initialize JWTManager
 
 def create_app():
     """Create and configure the Flask app."""
@@ -20,11 +18,11 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
-    session_manager.init_app(app)  # ✅ Ensure Flask-Session works properly
+    jwt.init_app(app)  # ✅ Initialize JWT
 
-    # Set login view for unauthorized users
-    login_manager.login_view = "auth.login"
+    # Configure JWT
+    app.config["JWT_SECRET_KEY"] = Config.JWT_SECRET_KEY  # Use a secure key from config
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = Config.JWT_ACCESS_TOKEN_EXPIRES  # Token expiration time
 
     # ✅ Global CORS (Allows both localhost & deployed frontend)
     CORS(
@@ -36,10 +34,12 @@ def create_app():
     # ✅ Import models AFTER `db.init_app` to avoid circular imports
     from app.auth.models import User  
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        """Load user by ID for Flask-Login."""
-        return db.session.get(User, int(user_id)) if user_id else None  # ✅ Prevents NoneType issues
+    # ✅ JWT user loader (optional, for advanced use cases)
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        """Load user from JWT identity."""
+        identity = jwt_data["sub"]  # Extract identity from JWT payload
+        return db.session.get(User, identity["id"])  # Fetch user from database
 
     # ✅ Import and register blueprints (ensure all exist before registering)
     from app.auth.routes import auth_bp

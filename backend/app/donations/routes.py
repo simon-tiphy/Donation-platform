@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, get_jwt_identity  # ✅ Replace Flask-Login with JWT
 from app import db
 from app.donations.models import Donation
 from app.charities.models import Charity
-from app.auth.models import User # Corrected from User to Users
+from app.auth.models import User
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -37,8 +37,11 @@ scheduler.add_job(process_recurring_donations, "interval", days=1)
 
 # Donor: Make a Donation (one-time or recurring)
 @donation_bp.route("/create", methods=["POST"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def make_donation():
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
     if current_user.role != "donor":
         return jsonify({"error": "Unauthorized. Only donors can make donations."}), 403
 
@@ -64,7 +67,7 @@ def make_donation():
     next_donation_date = datetime.utcnow() + timedelta(days=30) if is_recurring else None
 
     donation = Donation(
-        donor_id=current_user.id,
+        donor_id=current_user_id,
         charity_id=charity_id,
         amount=amount,
         is_recurring=is_recurring,
@@ -92,18 +95,24 @@ def get_charity_donations(charity_id):
 
 # Donor: View My Donations
 @donation_bp.route("/my", methods=["GET"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def get_my_donations():
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
     if current_user.role != "donor":
         return jsonify({"error": "Unauthorized. Only donors can view their donations."}), 403
 
-    donations = Donation.query.filter_by(donor_id=current_user.id).all()
+    donations = Donation.query.filter_by(donor_id=current_user_id).all()
     return jsonify([donation.to_dict() for donation in donations]), 200
 
 # Admin: View All Donations
 @donation_bp.route("/", methods=["GET"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def get_all_donations():
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
     if current_user.role != "admin":
         return jsonify({"error": "Unauthorized. Only admins can view all donations."}), 403
 
@@ -112,14 +121,17 @@ def get_all_donations():
 
 # Charity: View Non-Anonymous Donations
 @donation_bp.route("/charity/<int:charity_id>/non-anonymous", methods=["GET"])
-@login_required
+@jwt_required()  # ✅ Require a valid JWT to access this route
 def get_non_anonymous_donations(charity_id):
+    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
+    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
+
     charity = Charity.query.get(charity_id)
     if not charity:
         return jsonify({"error": "Charity not found"}), 404
 
-    if current_user.role != "charity":
-        return jsonify({"error": "Unauthorized. Only charities can view non-anonymous donations."}), 403
+    if current_user.role != "charity" or charity.user_id != current_user_id:
+        return jsonify({"error": "Unauthorized. Only the charity owner can view non-anonymous donations."}), 403
 
     donations = Donation.query.filter_by(charity_id=charity_id, anonymous=False).all()
     return jsonify([donation.to_dict() for donation in donations]), 200

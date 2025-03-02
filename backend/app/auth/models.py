@@ -1,10 +1,7 @@
 from app import db  # ✅ Import db from app/__init__.py
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin  # ✅ Import Flask-Login UserMixin
-from app.donations.models import Donation  # ✅ Import Donation model
-from app.charities.models import Charity  # ✅ Import Charity model
 
-class User(db.Model, UserMixin):  # ✅ Inherit from UserMixin
+class User(db.Model):  # ✅ Remove UserMixin (not needed for JWT)
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -17,10 +14,10 @@ class User(db.Model, UserMixin):  # ✅ Inherit from UserMixin
         default="donor"
     )
 
-    # ✅ Relationship with donations
+    # ✅ Relationship with donations (use string-based reference)
     donations = db.relationship("Donation", back_populates="donor", cascade="all, delete-orphan")
 
-    # ✅ Relationship with charity (for charity users)
+    # ✅ Relationship with charity (use string-based reference)
     charity = db.relationship("Charity", back_populates="user", uselist=False)
 
     def __init__(self, username, email, password, role="donor"):  
@@ -37,22 +34,16 @@ class User(db.Model, UserMixin):  # ✅ Inherit from UserMixin
         """Check if the provided password matches the stored hash."""
         return check_password_hash(self.password_hash, password)
 
-    # ✅ Flask-Login required methods
-    def get_id(self):
-        """Return the unique identifier for Flask-Login session management."""
-        return str(self.id)
+    # ✅ JWT-specific methods
+    def get_user_id(self):
+        """Return the user's ID (used for JWT identity)."""
+        return self.id
 
-    @property
-    def is_authenticated(self):
-        """Return True if the user is authenticated."""
-        return True
-
-    @property
-    def is_active(self):
-        """Return True if the user account is active."""
-        return True
-
-    @property
-    def is_anonymous(self):
-        """Return False as this is not an anonymous user."""
-        return False
+    def to_dict(self):
+        """Return a dictionary representation of the user (useful for JWT claims)."""
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "role": self.role
+        } 
