@@ -1,137 +1,44 @@
+# app/donations/routes.py
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity  # ✅ Replace Flask-Login with JWT
-from app import db
-from app.donations.models import Donation
-from app.charities.models import Charity
-from app.auth.models import User
-from datetime import datetime, timedelta
-from apscheduler.schedulers.background import BackgroundScheduler
+from app.donations.services import create_donation, get_donations
+from app.middleware.auth_middleware import auth_middleware
 
-donation_bp = Blueprint("donation", __name__, url_prefix="/donations")
+donations_routes = Blueprint('donations', __name__)
 
-# Background scheduler for recurring donations
-scheduler = BackgroundScheduler()
-scheduler.start()
-
-# Function to process recurring donations
-def process_recurring_donations():
-    now = datetime.utcnow()
-    recurring_donations = Donation.query.filter_by(is_recurring=True).all()
-
-    for donation in recurring_donations:
-        if donation.next_donation_date and donation.next_donation_date <= now:
-            new_donation = Donation(
-                donor_id=donation.donor_id,
-                charity_id=donation.charity_id,
-                amount=donation.amount,
-                is_recurring=True,
-                anonymous=donation.anonymous,
-                next_donation_date=now + timedelta(days=30)  # Schedule next donation
-            )
-            db.session.add(new_donation)
-            donation.next_donation_date = new_donation.next_donation_date
-            db.session.commit()
-
-# Schedule the function to run every day
-scheduler.add_job(process_recurring_donations, "interval", days=1)
-
-# Donor: Make a Donation (one-time or recurring)
-@donation_bp.route("/create", methods=["POST"])
-@jwt_required()  # ✅ Require a valid JWT to access this route
-def make_donation():
-    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
-    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
-
-    if current_user.role != "donor":
-        return jsonify({"error": "Unauthorized. Only donors can make donations."}), 403
-
+@donations_routes.route('/donations', methods=['POST'])
+@auth_middleware(allowed_roles=['donor'])
+def create_donation_route():
     data = request.get_json()
-    charity_id = data.get("charity_id")
-    amount = data.get("amount")
-    is_recurring = data.get("is_recurring", False)
-    anonymous = data.get("anonymous", False)
+    amount = data.get('amount')
+    charity_id = data.get('charity_id')
+    is_recurring = data.get('is_recurring', False)
+    is_anonymous = data.get('is_anonymous', False)
+    donor_id = request.user_id  # Get donor_id from the authenticated user
 
-    if not charity_id or not amount:
-        return jsonify({"error": "Charity ID and amount are required"}), 400
+    donation = create_donation(donor_id, charity_id, amount, is_recurring, is_anonymous)
+    if not donation:
+        return jsonify({'message': 'Failed to create donation'}), 400
 
-    if amount <= 0:
-        return jsonify({"error": "Donation amount must be greater than zero"}), 400
+    return jsonify({
+        'message': 'Donation created successfully',
+        'donation_id': donation.id
+    }), 201
 
-    charity = Charity.query.get(charity_id)
-    if not charity:
-        return jsonify({"error": "Charity not found"}), 404
+@donations_routes.route('/donations', methods=['GET'])
+@auth_middleware(allowed_roles=['donor', 'charity', 'admin'])
+def get_donations_route():
+    user_id = request.user_id
+    role = request.role
 
-    if charity.status != "approved":
-        return jsonify({"error": "Cannot donate to an unapproved charity"}), 400
-
-    next_donation_date = datetime.utcnow() + timedelta(days=30) if is_recurring else None
-
-    donation = Donation(
-        donor_id=current_user_id,
-        charity_id=charity_id,
-        amount=amount,
-        is_recurring=is_recurring,
-        anonymous=anonymous,
-        next_donation_date=next_donation_date
-    )
-
-    db.session.add(donation)
-    db.session.commit()
-
-    return jsonify({"message": "Donation successful"}), 201
-
-# Get all Donations for an Approved Charity
-@donation_bp.route("/charity/<int:charity_id>", methods=["GET"])
-def get_charity_donations(charity_id):
-    charity = Charity.query.get(charity_id)
-    if not charity:
-        return jsonify({"error": "Charity not found"}), 404
-
-    if charity.status != "approved":
-        return jsonify({"error": "Charity is not approved"}), 400
-
-    donations = Donation.query.filter_by(charity_id=charity_id).all()
-    return jsonify([donation.to_dict() for donation in donations]), 200
-
-# Donor: View My Donations
-@donation_bp.route("/my", methods=["GET"])
-@jwt_required()  # ✅ Require a valid JWT to access this route
-def get_my_donations():
-    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
-    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
-
-    if current_user.role != "donor":
-        return jsonify({"error": "Unauthorized. Only donors can view their donations."}), 403
-
-    donations = Donation.query.filter_by(donor_id=current_user_id).all()
-    return jsonify([donation.to_dict() for donation in donations]), 200
-
-# Admin: View All Donations
-@donation_bp.route("/", methods=["GET"])
-@jwt_required()  # ✅ Require a valid JWT to access this route
-def get_all_donations():
-    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
-    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
-
-    if current_user.role != "admin":
-        return jsonify({"error": "Unauthorized. Only admins can view all donations."}), 403
-
-    donations = Donation.query.all()
-    return jsonify([donation.to_dict() for donation in donations]), 200
-
-# Charity: View Non-Anonymous Donations
-@donation_bp.route("/charity/<int:charity_id>/non-anonymous", methods=["GET"])
-@jwt_required()  # ✅ Require a valid JWT to access this route
-def get_non_anonymous_donations(charity_id):
-    current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
-    current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
-
-    charity = Charity.query.get(charity_id)
-    if not charity:
-        return jsonify({"error": "Charity not found"}), 404
-
-    if current_user.role != "charity" or charity.user_id != current_user_id:
-        return jsonify({"error": "Unauthorized. Only the charity owner can view non-anonymous donations."}), 403
-
-    donations = Donation.query.filter_by(charity_id=charity_id, anonymous=False).all()
-    return jsonify([donation.to_dict() for donation in donations]), 200
+    donations = get_donations(user_id, role)
+    return jsonify({
+        'message': 'Donations retrieved successfully',
+        'donations': [{
+            'id': donation.id,
+            'amount': donation.amount,
+            'charity_id': donation.charity_id,
+            'is_recurring': donation.is_recurring,
+            'is_anonymous': donation.is_anonymous,
+            'date': donation.date.isoformat()
+        } for donation in donations]
+    }), 200
