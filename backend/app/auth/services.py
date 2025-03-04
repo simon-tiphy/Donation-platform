@@ -12,7 +12,10 @@ def register_user(name, email, password, role):
 
     # Set status to 'pending' for charities
     if role == 'charity':
-        user.status = 'pending'  # Default status for charities
+        user.status = 'pending'
+    elif role == 'admin' or 'donor':
+        user.status= 'approved' 
+     # Default status for charities
 
     # Hash the password and save the user
     user.set_password(password)
