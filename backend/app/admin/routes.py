@@ -25,8 +25,8 @@ def admin_required(f):
     return decorated_function
 
 
-# ✅ Approve or reject a charity
-@admin_bp.route("/approve/<int:charity_id>", methods=["PUT"])
+# ✅ Approve or reject a charity (organization)
+@admin_bp.route("/approve_charity/<int:charity_id>", methods=["PUT"])
 @auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
 def approve_charity(charity_id):
     charity = Charity.query.get(charity_id)
@@ -43,6 +43,30 @@ def approve_charity(charity_id):
     db.session.commit()
 
     return jsonify({"message": f"Charity {charity.name} status updated to {new_status}"}), 200
+
+
+# ✅ Approve or reject a user (charity user)
+@admin_bp.route("/approve_user/<int:user_id>", methods=["PUT"])
+@auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
+def approve_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Ensure the user is a charity
+    if user.role != "charity":
+        return jsonify({"error": "Only charity users can be approved"}), 400
+
+    data = request.get_json()
+    new_status = data.get("status")  # "approved" or "rejected"
+
+    if new_status not in ["approved", "rejected"]:
+        return jsonify({"error": "Invalid status"}), 400
+
+    user.status = new_status
+    db.session.commit()
+
+    return jsonify({"message": f"User {user.name} status updated to {new_status}"}), 200
 
 
 # ✅ Get all users
