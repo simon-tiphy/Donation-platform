@@ -1,4 +1,3 @@
-# app/charities/services.py
 from app.charities.models import Charity
 from app import db
 
@@ -8,7 +7,7 @@ def create_charity(name, description, user_id):
         name=name,
         description=description,
         user_id=user_id,
-        approved=False  # Default to False, must be approved by admin
+        status='pending'  # Default status for new charities
     )
     db.session.add(charity)
     db.session.commit()
@@ -17,3 +16,7 @@ def create_charity(name, description, user_id):
 def get_charities():
     """Get all charities."""
     return Charity.query.all()
+
+def get_charities_by_status(status):
+    """Get charities by status (e.g., 'pending', 'approved', 'rejected')."""
+    return Charity.query.filter_by(status=status).all()

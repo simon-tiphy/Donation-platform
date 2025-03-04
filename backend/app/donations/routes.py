@@ -1,4 +1,3 @@
-# app/donations/routes.py
 from flask import Blueprint, request, jsonify
 from app.donations.services import create_donation, get_donations
 from app.middleware.auth_middleware import auth_middleware
@@ -15,13 +14,18 @@ def create_donation_route():
     is_anonymous = data.get('is_anonymous', False)
     donor_id = request.user_id  # Get donor_id from the authenticated user
 
+    # Validate required fields
+    if not amount or not charity_id:
+        return jsonify({'message': 'Amount and charity_id are required'}), 400
+
+    # Create the donation
     donation = create_donation(donor_id, charity_id, amount, is_recurring, is_anonymous)
     if not donation:
         return jsonify({'message': 'Failed to create donation'}), 400
 
     return jsonify({
         'message': 'Donation created successfully',
-        'donation_id': donation.id
+        'donation': donation.to_dict()  # Use to_dict method for response
     }), 201
 
 @donations_routes.route('/donations', methods=['GET'])
@@ -33,12 +37,5 @@ def get_donations_route():
     donations = get_donations(user_id, role)
     return jsonify({
         'message': 'Donations retrieved successfully',
-        'donations': [{
-            'id': donation.id,
-            'amount': donation.amount,
-            'charity_id': donation.charity_id,
-            'is_recurring': donation.is_recurring,
-            'is_anonymous': donation.is_anonymous,
-            'date': donation.date.isoformat()
-        } for donation in donations]
+        'donations': [donation.to_dict() for donation in donations]  # Use to_dict method for response
     }), 200

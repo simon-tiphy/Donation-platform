@@ -22,7 +22,8 @@ def create_charity_route():
 
     return jsonify({
         'message': 'Charity created successfully',
-        'charity_id': charity.id
+        'charity_id': charity.id,
+        'status': charity.status  # Include status in the response
     }), 201
 
 @charities_routes.route('/charities', methods=['GET'])
@@ -35,6 +36,6 @@ def get_charities_route():
             'id': charity.id,
             'name': charity.name,
             'description': charity.description,
-            'approved': charity.approved
+            'status': charity.status  # Use status instead of approved
         } for charity in charities]
     }), 200

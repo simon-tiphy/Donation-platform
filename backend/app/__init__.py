@@ -1,4 +1,3 @@
-# app/__init__.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -14,8 +13,14 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
 
-    # Enable CORS
-    CORS(app)
+    # Enable CORS with specific origins
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:3000"],  # Allow requests from your frontend URL
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
+            "allow_headers": ["Content-Type", "Authorization"]  # Allowed headers
+        }
+    })
 
     # Initialize extensions with the app
     db.init_app(app)
@@ -26,9 +31,14 @@ def create_app():
     from app.auth.routes import auth_routes
     from app.donations.routes import donations_routes
     from app.charities.routes import charities_routes
+    from app.beneficiaries.routes import beneficiaries_routes  # Import beneficiaries routes
+    from app.admin.routes import admin_bp  # Import admin routes
+
     app.register_blueprint(auth_routes, url_prefix='/api/auth')
     app.register_blueprint(donations_routes, url_prefix='/api/donations')
     app.register_blueprint(charities_routes, url_prefix='/api/charities')
+    app.register_blueprint(beneficiaries_routes, url_prefix='/api/beneficiaries')  # Register beneficiaries routes
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')  # Register admin routes
 
     # Debug statement
     print("Registered Blueprints:")
