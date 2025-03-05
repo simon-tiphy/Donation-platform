@@ -73,7 +73,7 @@ def delete_charity(charity_id):
 
 # ✅ Get all approved charities
 @admin_bp.route("/charities/approved", methods=["GET"])
-@auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
+@auth_middleware(allowed_roles=["admin", "donor"])  # Use auth_middleware to restrict access to admins
 def get_approved_charities():
     approved_charities = Charity.query.filter_by(status="approved").all()
     return jsonify([charity.to_dict() for charity in approved_charities]), 200
@@ -81,7 +81,7 @@ def get_approved_charities():
 
 # ✅ Get all rejected charities
 @admin_bp.route("/charities/rejected", methods=["GET"])
-@auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
+@auth_middleware(allowed_roles=["admin", "charity"])  # Use auth_middleware to restrict access to admins
 def get_rejected_charities():
     rejected_charities = Charity.query.filter_by(status="rejected").all()
     return jsonify([charity.to_dict() for charity in rejected_charities]), 200
