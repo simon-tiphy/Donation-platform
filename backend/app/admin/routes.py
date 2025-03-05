@@ -1,29 +1,11 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity  # ✅ Replace Flask-Login with JWT
-from functools import wraps
 from app import db
 from app.auth.models import User
 from app.charities.models import Charity
 from app.donations.models import Donation
-from app.middleware.auth_middleware import auth_middleware  # Import the auth middleware
-
+from app.middleware.auth_middleware import auth_middleware
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-
-
-# ✅ Admin role required decorator
-def admin_required(f):
-    @wraps(f)
-    @jwt_required()  # ✅ Require a valid JWT to access this route
-    def decorated_function(*args, **kwargs):
-        current_user_id = get_jwt_identity()["id"]  # ✅ Get user ID from JWT
-        current_user = User.query.get(current_user_id)  # ✅ Fetch user from database
-
-        if not current_user or current_user.role != "admin":
-            return jsonify({"error": "Unauthorized. Admin access required"}), 403
-        return f(*args, **kwargs)
-    return decorated_function
-
 
 # ✅ Approve or reject a charity (organization)
 @admin_bp.route("/approve_charity/<int:charity_id>", methods=["PUT"])
@@ -45,30 +27,6 @@ def approve_charity(charity_id):
     return jsonify({"message": f"Charity {charity.name} status updated to {new_status}"}), 200
 
 
-# ✅ Approve or reject a user (charity user)
-@admin_bp.route("/approve_user/<int:user_id>", methods=["PUT"])
-@auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
-def approve_user(user_id):
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    # Ensure the user is a charity
-    if user.role != "charity":
-        return jsonify({"error": "Only charity users can be approved"}), 400
-
-    data = request.get_json()
-    new_status = data.get("status")  # "approved" or "rejected"
-
-    if new_status not in ["approved", "rejected"]:
-        return jsonify({"error": "Invalid status"}), 400
-
-    user.status = new_status
-    db.session.commit()
-
-    return jsonify({"message": f"User {user.name} status updated to {new_status}"}), 200
-
-
 # ✅ Get all users
 @admin_bp.route("/users", methods=["GET"])
 @auth_middleware(allowed_roles=["admin"])  # Use auth_middleware to restrict access to admins
@@ -88,7 +46,7 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     
-    return jsonify({"message": f"User {user.name} deleted"}), 200  # Fixed: Changed `username` to `name`
+    return jsonify({"message": f"User {user.name} deleted"}), 200
 
 
 # ✅ View all donations

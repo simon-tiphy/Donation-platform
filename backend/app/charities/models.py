@@ -17,5 +17,17 @@ class Charity(db.Model):
     beneficiaries = db.relationship('Beneficiary', back_populates='charity', lazy=True)  # Charity can have many beneficiaries
     donations = db.relationship('Donation', back_populates='charity', lazy=True)  # Charity can have many donations
 
+    def to_dict(self):
+        """Convert the Charity object to a dictionary."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'status': self.status,
+            'user_id': self.user_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
     def __repr__(self):
         return f'<Charity id={self.id}, name={self.name}, status={self.status}>'

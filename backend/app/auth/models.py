@@ -10,7 +10,6 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(50), nullable=False)  # e.g., 'donor', 'charity', 'admin'
-    status = db.Column(db.String(50), default='pending')  # 'pending', 'approved', 'rejected'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Timestamp of creation
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Timestamp of last update
 
@@ -33,7 +32,6 @@ class User(db.Model):
             'name': self.name,
             'email': self.email,
             'role': self.role,
-            'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

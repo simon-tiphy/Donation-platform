@@ -24,8 +24,8 @@ def register():
     return jsonify({
         'message': 'User registered successfully',
         'user_id': user.id,
-        'role': user.role,
-        'status': user.status  # Include status in the response
+        'role': user.role
+        # Removed 'status' since it's no longer part of the User model
     }), 201
 
 @auth_routes.route('/login', methods=['POST'])
@@ -41,7 +41,7 @@ def login():
     # Authenticate the user
     user = login_user(email, password)
     if not user:
-        return jsonify({'message': 'Invalid credentials or charity not approved'}), 401
+        return jsonify({'message': 'Invalid credentials'}), 401
 
     # Generate a token for the user
     token = generate_token(user.id, user.role)
@@ -49,6 +49,6 @@ def login():
         'message': 'Login successful',
         'token': token,
         'user_id': user.id,
-        'role': user.role,
-        'status': user.status  # Include status in the response
+        'role': user.role
+        # Removed 'status' since it's no longer part of the User model
     }), 200

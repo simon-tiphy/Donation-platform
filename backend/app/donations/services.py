@@ -1,6 +1,6 @@
-# app/donations/services.py
 from app.donations.models import Donation, RecurringDonation
 from app import db
+from datetime import datetime, timedelta
 
 def create_donation(donor_id, charity_id, amount, is_recurring, is_anonymous):
     """Create a new donation."""
@@ -37,16 +37,8 @@ def get_donations(user_id, role):
     else:
         donations = []
 
-    return [{
-        'id': donation.id,
-        'amount': donation.amount,
-        'charity_id': donation.charity_id,
-        'is_recurring': donation.is_recurring,
-        'is_anonymous': donation.is_anonymous,
-        'date': donation.date.isoformat()
-    } for donation in donations]
+    return donations  # Return a list of Donation objects
 
 def calculate_next_payment_date():
     """Calculate the next payment date for recurring donations."""
-    from datetime import datetime, timedelta
     return datetime.utcnow() + timedelta(days=30)  # Default to 30 days

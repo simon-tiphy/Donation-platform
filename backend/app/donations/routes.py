@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.donations.services import create_donation, get_donations
 from app.middleware.auth_middleware import auth_middleware
+from app.charities.models import Charity  # Import Charity model to check approval status
 
 donations_routes = Blueprint('donations', __name__)
 
@@ -17,6 +18,13 @@ def create_donation_route():
     # Validate required fields
     if not amount or not charity_id:
         return jsonify({'message': 'Amount and charity_id are required'}), 400
+
+    # Check if the charity exists and is approved
+    charity = Charity.query.get(charity_id)
+    if not charity:
+        return jsonify({'message': 'Charity not found'}), 404
+    if charity.status != 'approved':
+        return jsonify({'message': 'Charity not approved for donations'}), 403
 
     # Create the donation
     donation = create_donation(donor_id, charity_id, amount, is_recurring, is_anonymous)

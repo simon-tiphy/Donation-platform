@@ -3,6 +3,12 @@ from app import db
 
 def create_charity(name, description, user_id):
     """Create a new charity."""
+    # Check if a charity with the same name already exists
+    existing_charity = Charity.query.filter_by(name=name).first()
+    if existing_charity:
+        return None  # Charity with the same name already exists
+
+    # Create the charity
     charity = Charity(
         name=name,
         description=description,

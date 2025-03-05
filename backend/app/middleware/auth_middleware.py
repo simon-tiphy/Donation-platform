@@ -1,7 +1,6 @@
 from functools import wraps
 from flask import request, jsonify
 from app.auth.utils import decode_token
-from app.auth.models import User  # Import the User model to check approval status
 
 def auth_middleware(allowed_roles=None):
     def decorator(func):
@@ -31,12 +30,6 @@ def auth_middleware(allowed_roles=None):
             # Check if the user's role is allowed
             if payload['role'] not in _allowed_roles:
                 return jsonify({'message': f"Unauthorized access: Role '{payload['role']}' not allowed"}), 403
-
-            # For charity users, check if they are approved
-            if payload['role'] == 'charity':
-                user = User.query.get(payload['user_id'])
-                if not user or user.status != 'approved':
-                    return jsonify({'message': 'Charity user not approved'}), 403
 
             # Attach user info to the request object
             request.user_id = payload['user_id']

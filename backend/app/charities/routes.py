@@ -1,21 +1,19 @@
 from flask import Blueprint, request, jsonify
 from app.charities.services import create_charity, get_charities
 from app.middleware.auth_middleware import auth_middleware
+from app.charities.models import Charity # Correct import path for Charity model
 
 charities_routes = Blueprint('charities', __name__)
 
 @charities_routes.route('/charities', methods=['POST'])
 @auth_middleware(allowed_roles=['admin', 'charity'])  # Allow both admins and charities
 def create_charity_route():
-    # Ensure the charity is approved
-    if request.role == 'charity' and request.status != 'approved':
-        return jsonify({'message': 'Charity not approved'}), 403
-
     data = request.get_json()
     name = data.get('name')
     description = data.get('description')
     user_id = request.user_id  # Get user_id from the authenticated user
 
+    # Create the charity
     charity = create_charity(name, description, user_id)
     if not charity:
         return jsonify({'message': 'Failed to create charity: Invalid data or duplicate name'}), 400
@@ -36,6 +34,6 @@ def get_charities_route():
             'id': charity.id,
             'name': charity.name,
             'description': charity.description,
-            'status': charity.status  # Use status instead of approved
+            'status': charity.status  # Include status in the response
         } for charity in charities]
     }), 200
