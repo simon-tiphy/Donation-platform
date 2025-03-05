@@ -1,0 +1,52 @@
+.donor-dashboard {
+  padding: 20px;
+}
+
+.donation-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.donation-form h2 {
+  margin-bottom: 20px;
+}
+
+.donation-form select,
+.donation-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+}
+
+.donation-form button {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.donation-form button:hover {
+  background-color: #218838;
+}
+
+.anonymous-donation {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.donation-history {
+  margin-top: 20px;
+}
+
+.donation-history a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.donation-history a:hover {
+  text-decoration: underline;
+}
+

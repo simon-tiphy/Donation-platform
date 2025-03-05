@@ -11,6 +11,10 @@ flask-migrate = "*"
 flask-jwt-extended = "*"
 werkzeug = "*"
 flask-bcrypt = "*"
+gunicorn = "*"
+flask-mail = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 

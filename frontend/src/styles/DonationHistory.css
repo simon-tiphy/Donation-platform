@@ -1,0 +1,50 @@
+.donation-history {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    text-align: center;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    background: #f1f1f1;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s;
+  }
+  
+  li:hover {
+    background: #e0e0e0;
+  }
+  
+  .recurring {
+    background: #fffbcc; /* Light yellow for recurring donations */
+    border-left: 5px solid #ffcc00;
+  }
+  
+  .recurring::after {
+    content: " 🔄";
+    font-size: 16px;
+    color: #ff9800;
+  }
+  
