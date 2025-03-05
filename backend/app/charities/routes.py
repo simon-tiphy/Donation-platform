@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
-from app.charities.services import create_charity, get_charities
+from app.charities.services import (
+    create_charity, get_charities, get_non_anonymous_donors,
+    get_anonymous_donations, get_total_donations
+)
 from app.middleware.auth_middleware import auth_middleware
-from app.charities.models import Charity # Correct import path for Charity model
+from app.charities.models import Charity
 
 charities_routes = Blueprint('charities', __name__)
 
@@ -36,4 +39,31 @@ def get_charities_route():
             'description': charity.description,
             'status': charity.status  # Include status in the response
         } for charity in charities]
+    }), 200
+
+@charities_routes.route('/charities/<int:charity_id>/donors', methods=['GET'])
+@auth_middleware(allowed_roles=['charity', 'admin'])  # Allow charities and admins
+def get_non_anonymous_donors_route(charity_id):
+    donors = get_non_anonymous_donors(charity_id)
+    return jsonify({
+        'message': 'Non-anonymous donors retrieved successfully',
+        'donors': donors
+    }), 200
+
+@charities_routes.route('/charities/<int:charity_id>/anonymous-donations', methods=['GET'])
+@auth_middleware(allowed_roles=['charity', 'admin'])  # Allow charities and admins
+def get_anonymous_donations_route(charity_id):
+    donations = get_anonymous_donations(charity_id)
+    return jsonify({
+        'message': 'Anonymous donations retrieved successfully',
+        'anonymous_donations': donations
+    }), 200
+
+@charities_routes.route('/charities/<int:charity_id>/total-donations', methods=['GET'])
+@auth_middleware(allowed_roles=['charity', 'admin'])  # Allow charities and admins
+def get_total_donations_route(charity_id):
+    total = get_total_donations(charity_id)
+    return jsonify({
+        'message': 'Total donations retrieved successfully',
+        'total_donations': total
     }), 200
