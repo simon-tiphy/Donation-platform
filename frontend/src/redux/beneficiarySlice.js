@@ -1,131 +1,163 @@
-// import { createSlice } from "@reduxjs/toolkit";
+// src/redux/beneficiariesSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-// // Load beneficiaries from local storage
-// const loadBeneficiaries = () => {
-//   const data = localStorage.getItem("beneficiaries");
-//   return data ? JSON.parse(data) : [];
-// };
+const API_URL = 'https://donation-platform-8n9f.onrender.com/api/beneficiaries/beneficiaries';
 
-// const beneficiarySlice = createSlice({
-//   name: "beneficiaries",
-//   initialState: {
-//     list: loadBeneficiaries(),
-//   },
-//   reducers: {
-//     addBeneficiary: (state, action) => {
-//       state.list.push(action.payload);
-//       localStorage.setItem("beneficiaries", JSON.stringify(state.list)); // Save to storage
-//     },
-//   },
-// });
+// Create a beneficiary
+export const createBeneficiary = createAsyncThunk(
+  'beneficiaries/createBeneficiary',
+  async ({ name, story }, { getState, rejectWithValue }) => {
+    const { token } = getState().auth;
+    try {
+      const response = await axios.post(
+        API_URL,
+        { name, story },
+        { headers: { Authorization: token ? `Bearer ${token}` : '' } }
+      );
+      return response.data; // { message, beneficiary: {...} }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Beneficiary creation failed'
+      );
+    }
+  }
+);
 
-// export const { addBeneficiary } = beneficiarySlice.actions;
-// export default beneficiarySlice.reducer;
+// Fetch all beneficiaries for the charity
+export const fetchBeneficiaries = createAsyncThunk(
+  'beneficiaries/fetchBeneficiaries',
+  async (_, { getState, rejectWithValue }) => {
+    const { token } = getState().auth;
+    try {
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+      return response.data.beneficiaries; // list of beneficiary objects
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch beneficiaries'
+      );
+    }
+  }
+);
 
+// Update a beneficiary
+export const updateBeneficiary = createAsyncThunk(
+  'beneficiaries/updateBeneficiary',
+  async ({ beneficiaryId, name, story }, { getState, rejectWithValue }) => {
+    const { token } = getState().auth;
+    try {
+      const response = await axios.put(
+        `${API_URL}/${beneficiaryId}`,
+        { name, story },
+        { headers: { Authorization: token ? `Bearer ${token}` : '' } }
+      );
+      return response.data; // { message, beneficiary: {...} }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update beneficiary'
+      );
+    }
+  }
+);
 
-// import { createSlice } from "@reduxjs/toolkit";
+// Delete a beneficiary
+export const deleteBeneficiary = createAsyncThunk(
+  'beneficiaries/deleteBeneficiary',
+  async (beneficiaryId, { getState, rejectWithValue }) => {
+    const { token } = getState().auth;
+    try {
+      const response = await axios.delete(`${API_URL}/${beneficiaryId}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+      return { beneficiaryId, message: response.data.message };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to delete beneficiary'
+      );
+    }
+  }
+);
 
-// // Load beneficiaries from local storage
-// const loadBeneficiaries = () => {
-//   const data = localStorage.getItem("beneficiaries");
-//   return data ? JSON.parse(data) : [];
-// };
-
-// // Save beneficiaries to local storage
-// const saveBeneficiaries = (beneficiaries) => {
-//   localStorage.setItem("beneficiaries", JSON.stringify(beneficiaries));
-// };
-
-// const beneficiarySlice = createSlice({
-//   name: "beneficiaries",
-//   initialState: {
-//     list: loadBeneficiaries(),
-//   },
-//   reducers: {
-//     addBeneficiary: (state, action) => {
-//       state.list.push({ ...action.payload, inventory: [] }); // Initialize inventory as empty array
-//       saveBeneficiaries(state.list);
-//     },
-//     addInventoryItem: (state, action) => {
-//       const { beneficiaryId, item } = action.payload;
-//       const beneficiary = state.list.find((b) => b.id === beneficiaryId);
-//       if (beneficiary) {
-//         beneficiary.inventory.push(item);
-//         saveBeneficiaries(state.list);
-//       }
-//     },
-//     updateInventoryItem: (state, action) => {
-//       const { beneficiaryId, itemId, updatedItem } = action.payload;
-//       const beneficiary = state.list.find((b) => b.id === beneficiaryId);
-//       if (beneficiary) {
-//         const itemIndex = beneficiary.inventory.findIndex((i) => i.id === itemId);
-//         if (itemIndex !== -1) {
-//           beneficiary.inventory[itemIndex] = updatedItem;
-//           saveBeneficiaries(state.list);
-//         }
-//       }
-//     },
-//     removeInventoryItem: (state, action) => {
-//       const { beneficiaryId, itemId } = action.payload;
-//       const beneficiary = state.list.find((b) => b.id === beneficiaryId);
-//       if (beneficiary) {
-//         beneficiary.inventory = beneficiary.inventory.filter((i) => i.id !== itemId);
-//         saveBeneficiaries(state.list);
-//       }
-//     },
-//   },
-// });
-
-// export const { addBeneficiary, addInventoryItem, updateInventoryItem, removeInventoryItem } = beneficiarySlice.actions;
-// export default beneficiarySlice.reducer;
-
-
-import { createSlice } from "@reduxjs/toolkit";
-
-const loadBeneficiaries = () => {
-  const data = localStorage.getItem("beneficiaries");
-  return data ? JSON.parse(data) : [];
-};
-
-const beneficiarySlice = createSlice({
-  name: "beneficiaries",
+const beneficiariesSlice = createSlice({
+  name: 'beneficiaries',
   initialState: {
-    list: loadBeneficiaries(),
+    beneficiaries: [],
+    status: 'idle',
+    error: null,
+    message: '',
   },
   reducers: {
-    addBeneficiary: (state, action) => {
-      state.list.push({ ...action.payload, id: Date.now(), inventory: [] }); // Ensure each beneficiary has an inventory
-      localStorage.setItem("beneficiaries", JSON.stringify(state.list));
+    clearBeneficiaryMessage(state) {
+      state.message = '';
+      state.error = null;
     },
-
-    addInventoryItem: (state, action) => {
-      const { beneficiaryId, item } = action.payload;
-      const beneficiary = state.list.find((b) => b.id === beneficiaryId);
-
-      if (beneficiary) {
-        if (!beneficiary.inventory) beneficiary.inventory = []; // Ensure inventory exists
-        beneficiary.inventory.push(item);
-        localStorage.setItem("beneficiaries", JSON.stringify(state.list));
-      }
-    },
-
-    removeInventoryItem: (state, action) => {
-      const { beneficiaryId, itemId } = action.payload;
-      const beneficiary = state.list.find((b) => b.id === beneficiaryId);
-
-      if (beneficiary && beneficiary.inventory) {
-        beneficiary.inventory = beneficiary.inventory.filter((_, index) => index !== itemId);
-        localStorage.setItem("beneficiaries", JSON.stringify(state.list));
-      }
-    },
-
-    removeBeneficiary: (state, action) => {
-      state.list = state.list.filter((b) => b.id !== action.payload);
-      localStorage.setItem("beneficiaries", JSON.stringify(state.list));
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Create beneficiary
+      .addCase(createBeneficiary.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(createBeneficiary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.message = action.payload.message;
+        state.beneficiaries.push(action.payload.beneficiary);
+      })
+      .addCase(createBeneficiary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // Fetch beneficiaries
+      .addCase(fetchBeneficiaries.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchBeneficiaries.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.beneficiaries = action.payload;
+      })
+      .addCase(fetchBeneficiaries.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // Update beneficiary
+      .addCase(updateBeneficiary.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateBeneficiary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.message = action.payload.message;
+        const updated = action.payload.beneficiary;
+        const index = state.beneficiaries.findIndex(b => b.id === updated.id);
+        if (index !== -1) {
+          state.beneficiaries[index] = updated;
+        }
+      })
+      .addCase(updateBeneficiary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // Delete beneficiary
+      .addCase(deleteBeneficiary.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteBeneficiary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.message = action.payload.message;
+        state.beneficiaries = state.beneficiaries.filter(
+          b => b.id !== action.payload.beneficiaryId
+        );
+      })
+      .addCase(deleteBeneficiary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   },
 });
 
-export const { addBeneficiary, addInventoryItem, removeInventoryItem, removeBeneficiary } =
-  beneficiarySlice.actions;
-export default beneficiarySlice.reducer;
+export const { clearBeneficiaryMessage } = beneficiariesSlice.actions;
+export default beneficiariesSlice.reducer;
+
+
+

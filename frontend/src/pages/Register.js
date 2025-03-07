@@ -1,56 +1,89 @@
-// import React, { useState } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { registerUser } from "../redux/authSlice";
-// import { useNavigate, Link } from "react-router-dom";
-// import "../styles/Register.css"; // Import the updated CSS file
+
+// import React, { useState } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { register } from '../redux/authSlice';
+// import { useNavigate } from 'react-router-dom';
 
 // const Register = () => {
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     email: '',
+//     password: '',
+//     role: 'donor', // default role
+//   });
 //   const dispatch = useDispatch();
 //   const navigate = useNavigate();
 //   const { status, error } = useSelector((state) => state.auth);
 
-//   const [formData, setFormData] = useState({
-//     name: "",
-//     email: "",
-//     password: "",
-//     role: "donor",
-//   });
-
 //   const handleChange = (e) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//     setFormData({
+//       ...formData,
+//       [e.target.name]: e.target.value,
+//     });
 //   };
 
-//   const handleSubmit = (e) => {
+//   const handleSubmit = async (e) => {
 //     e.preventDefault();
-//     dispatch(registerUser(formData));
-
-//     if (!error) {
-//       navigate("/login");
+//     const resultAction = await dispatch(register(formData));
+//     if (register.fulfilled.match(resultAction)) {
+//       const role = resultAction.payload.role;
+//       if (role === 'admin') {
+//         navigate('/admin-dashboard');
+//       } else if (role === 'charity') {
+//         navigate('/charity-dashboard');
+//       } else {
+//         navigate('/donor-dashboard');
+//       }
 //     }
 //   };
 
 //   return (
-//     <div className="register-container">
-//       <div className="register-box">
-//         <h2>Join Us</h2>
-//         <p className="subtext">Make an impact with your donations.</p>
-//         <form onSubmit={handleSubmit}>
-//           <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required />
-//           <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-//           <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-
+//     <div>
+//       <h2>Register</h2>
+//       {status === 'failed' && <p style={{ color: 'red' }}>{error}</p>}
+//       <form onSubmit={handleSubmit}>
+//         <div>
+//           <label>Name:</label>
+//           <input 
+//             name="name" 
+//             type="text" 
+//             value={formData.name} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Email:</label>
+//           <input 
+//             name="email" 
+//             type="email" 
+//             value={formData.email} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Password:</label>
+//           <input 
+//             name="password" 
+//             type="password" 
+//             value={formData.password} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Role:</label>
 //           <select name="role" value={formData.role} onChange={handleChange}>
 //             <option value="donor">Donor</option>
 //             <option value="charity">Charity</option>
 //             <option value="admin">Admin</option>
 //           </select>
-
-//           <button type="submit" disabled={status === "loading"}>Register</button>
-//         </form>
-//         {error && <p className="error-message">{error}</p>}
-
-//         <p className="login-link">Already have an account? <Link to="/login">Login here</Link></p>
-//       </div>
+//         </div>
+//         <button type="submit" disabled={status === 'loading'}>
+//           Register
+//         </button>
+//       </form>
 //     </div>
 //   );
 // };
@@ -58,51 +91,192 @@
 // export default Register;
 
 
+// import React, { useState } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { register } from '../redux/authSlice';
+// import { useNavigate, Link } from 'react-router-dom';
+// import '../styles/Register.css';
 
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../redux/authSlice";
-import { useNavigate } from "react-router-dom";
+// const Register = () => {
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     email: '',
+//     password: '',
+//     role: 'donor', // default role
+//   });
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+//   const { status, error } = useSelector((state) => state.auth);
+
+//   const handleChange = (e) => {
+//     setFormData({
+//       ...formData,
+//       [e.target.name]: e.target.value,
+//     });
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     const resultAction = await dispatch(register(formData));
+//     if (register.fulfilled.match(resultAction)) {
+//       const role = resultAction.payload.role;
+//       if (role === 'admin') {
+//         navigate('/admin-dashboard');
+//       } else if (role === 'charity') {
+//         navigate('/charity-dashboard');
+//       } else {
+//         navigate('/donor-dashboard');
+//       }
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <h2>Register</h2>
+//       {status === 'failed' && <p style={{ color: 'red' }}>{error}</p>}
+//       <form onSubmit={handleSubmit}>
+//         <div>
+//           <label>Name:</label>
+//           <input 
+//             name="name" 
+//             type="text" 
+//             value={formData.name} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Email:</label>
+//           <input 
+//             name="email" 
+//             type="email" 
+//             value={formData.email} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Password:</label>
+//           <input 
+//             name="password" 
+//             type="password" 
+//             value={formData.password} 
+//             onChange={handleChange} 
+//             required 
+//           />
+//         </div>
+//         <div>
+//           <label>Role:</label>
+//           <select name="role" value={formData.role} onChange={handleChange}>
+//             <option value="donor">Donor</option>
+//             <option value="charity">Charity</option>
+//             <option value="admin">Admin</option>
+//           </select>
+//         </div>
+//         <button type="submit" disabled={status === 'loading'}>
+//           Register
+//         </button>
+//       </form>
+//       <p>
+//         Already have an account? <Link to="/login">Login here</Link>
+//       </p>
+//     </div>
+//   );
+// };
+
+// export default Register;
+
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { register } from '../redux/authSlice';
+import { useNavigate, Link } from 'react-router-dom';
+import '../styles/Register.css';
 
 const Register = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'donor',
+  });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error } = useSelector((state) => state.auth);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "donor",
-  });
+  const { status, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(registerUser(formData));
-    if (result.meta.requestStatus === "fulfilled") {
-      navigate("/login");
+    const resultAction = await dispatch(register(formData));
+    if (register.fulfilled.match(resultAction)) {
+      const role = resultAction.payload.role;
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'charity') {
+        navigate('/charity-dashboard');
+      } else {
+        navigate('/donor-dashboard');
+      }
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Name" onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-        <select name="role" onChange={handleChange}>
-          <option value="donor">Donor</option>
-          <option value="charity">Charity</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button type="submit">Register</button>
-      </form>
+    <div className="register-page">
+      <div className="register-container">
+        <h2>Register</h2>
+        {status === 'failed' && <p className="error">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Name:</label>
+            <input 
+              name="name" 
+              type="text" 
+              value={formData.name} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          <div>
+            <label>Email:</label>
+            <input 
+              name="email" 
+              type="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          <div>
+            <label>Password:</label>
+            <input 
+              name="password" 
+              type="password" 
+              value={formData.password} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          <div>
+            <label>Role:</label>
+            <select name="role" value={formData.role} onChange={handleChange}>
+              <option value="donor">Donor</option>
+              <option value="charity">Charity</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" disabled={status === 'loading'}>
+            Register
+          </button>
+        </form>
+        <p className="link">
+          Already have an account? <Link to="/login">Login here</Link>
+        </p>
+      </div>
     </div>
   );
 };

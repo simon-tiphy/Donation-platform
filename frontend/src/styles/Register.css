@@ -1,94 +1,119 @@
-/* Background with Blue Gradient */
-.register-container {
+/* Register.css */
+
+/* Ensure the auth page takes up the full viewport with a blue background */
+.register-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  /* background: linear-gradient(135deg, #3b0edb, #1f2fbe); */
+  background: url(https://media.istockphoto.com/id/474251868/photo/african-black-child-drinking-fresh-water-from-tap.jpg?s=612x612&w=0&k=20&c=y66oobIE-5efhX76wrM4_RC7GMLkElTaaUUNwXA3Kvk=) no-repeat center center fixed;
+  background-size: cover;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: url('https://cdn.pixabay.com/photo/2014/06/16/23/40/blue-370127_960_720.png');
+  justify-content: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
 }
 
-/* Register Box */
-.register-box {
-  background: white;
-  padding: 35px;
-  width: 400px;
-  border-radius: 10px;
-  box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.2);
+/* White card container for the registration form */
+.register-container {
+  max-width: 400px;
+  width: 100%;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings and general text */
+.register-container h2 {
   text-align: center;
-}
-
-/* Title */
-.register-box h2 {
-  margin-bottom: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #007bff;
-}
-
-/* Subtitle */
-.subtext {
-  font-size: 14px;
   margin-bottom: 20px;
-  color: #666;
+  color: #333333;
 }
 
-/* Input Fields */
-.register-box input,
-.register-box select {
-  width: 100%;
-  padding: 12px;
+.register-container p {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Form styling */
+.register-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-container form > div {
   margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  outline: none;
-  background: #f9f9f9;
-  transition: 0.3s;
 }
 
-.register-box input:focus,
-.register-box select:focus {
-  border-color: #007bff;
-  background: #fff;
+.register-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555555;
 }
 
-/* Button */
-.register-box button {
+.register-container input,
+.register-container select,
+.register-container textarea {
   width: 100%;
+  padding: 10px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.register-container input:focus,
+.register-container select:focus,
+.register-container textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Button styling */
+.register-container button {
   padding: 12px;
-  background: #007bff;
-  color: white;
+  background-color: #007bff;
+  color: #ffffff;
   border: none;
-  border-radius: 5px;
-  font-size: 18px;
-  font-weight: bold;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.3s ease;
 }
 
-.register-box button:hover {
-  background: #0056b3;
+.register-container button:disabled {
+  background-color: #a0c8f0;
+  cursor: not-allowed;
 }
 
-/* Error Message */
-.error-message {
-  color: #ff4c4c;
-  margin-top: 10px;
-  font-size: 14px;
+.register-container button:hover:not(:disabled) {
+  background-color: #0056b3;
 }
 
-/* Login Link */
-.login-link {
+/* Error message styling */
+.register-container .error {
+  color: #d9534f;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Link styling */
+.register-container .link {
+  text-align: center;
   margin-top: 15px;
-  font-size: 14px;
 }
 
-.login-link a {
+.register-container .link a {
   color: #007bff;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 600;
+  transition: color 0.3s ease;
 }
 
-.login-link a:hover {
-  text-decoration: underline;
+.register-container .link a:hover {
+  color: #0056b3;
 }
