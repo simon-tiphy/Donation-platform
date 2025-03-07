@@ -3,7 +3,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ffe6e6, #fff5e6);
+  /* background: linear-gradient(135deg, #ffe6e6, #fff5e6); */
+  background: url(https://img.freepik.com/premium-vector/gray-abstract-background-with-glowing-realistic-3d-line-pattern_615931-126.jpg) no-repeat center center/cover;
   color: #333;
   overflow-x: hidden;
 }

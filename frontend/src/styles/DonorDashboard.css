@@ -60,7 +60,8 @@ body {
 .donor-dashboard-container {
   max-width: 1100px;
   margin: -100px auto 40px auto;
-  background: #fff;
+  background: #cfcdcd;
+  background: url(https://img.freepik.com/premium-vector/gray-abstract-background-with-glowing-realistic-3d-line-pattern_615931-126.jpg) no-repeat center center/cover;
   padding: 50px;
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
