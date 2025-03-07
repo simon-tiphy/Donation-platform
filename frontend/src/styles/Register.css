@@ -1,0 +1,119 @@
+/* Register.css */
+
+/* Ensure the auth page takes up the full viewport with a blue background */
+.register-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  /* background: linear-gradient(135deg, #3b0edb, #1f2fbe); */
+  background: url(https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D) no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+/* White card container for the registration form */
+.register-container {
+  max-width: 400px;
+  width: 100%;
+  padding: 30px;
+  background-color: #dad6d6;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings and general text */
+.register-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333333;
+}
+
+.register-container p {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Form styling */
+.register-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-container form > div {
+  margin-bottom: 15px;
+}
+
+.register-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555555;
+}
+
+.register-container input,
+.register-container select,
+.register-container textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.register-container input:focus,
+.register-container select:focus,
+.register-container textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Button styling */
+.register-container button {
+  padding: 12px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.register-container button:disabled {
+  background-color: #a0c8f0;
+  cursor: not-allowed;
+}
+
+.register-container button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Error message styling */
+.register-container .error {
+  color: #d9534f;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Link styling */
+.register-container .link {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.register-container .link a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.register-container .link a:hover {
+  color: #0056b3;
+}
