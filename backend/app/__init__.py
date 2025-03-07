@@ -14,13 +14,7 @@ def create_app():
     app.config.from_object('app.config.Config')
 
     # Enable CORS with specific origins
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["http://localhost:3000"],  # Allow requests from your frontend URL
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
-            "allow_headers": ["Content-Type", "Authorization"]  # Allowed headers
-        }
-    })
+    CORS(app)
 
     # Initialize extensions with the app
     db.init_app(app)
