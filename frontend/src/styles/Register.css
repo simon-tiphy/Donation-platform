@@ -6,7 +6,7 @@
   margin: 0;
   padding: 0;
   /* background: linear-gradient(135deg, #3b0edb, #1f2fbe); */
-  background: url(https://media.istockphoto.com/id/474251868/photo/african-black-child-drinking-fresh-water-from-tap.jpg?s=612x612&w=0&k=20&c=y66oobIE-5efhX76wrM4_RC7GMLkElTaaUUNwXA3Kvk=) no-repeat center center fixed;
+  background: url(https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D) no-repeat center center fixed;
   background-size: cover;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
   max-width: 400px;
   width: 100%;
   padding: 30px;
-  background-color: #ffffff;
+  background-color: #dad6d6;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
