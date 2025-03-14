@@ -1,5 +1,5 @@
 ### DONATION-PLATFORM
-# 🎗️ Automated Donation Platform Frontend
+# 🎗️ Automated Donation Platform
 
 The **Automated Donation Platform** is a web application dedicated to supporting **menstrual hygiene** by connecting **donors, charities, and administrators**. This platform facilitates seamless donations, charity management, and administrative approvals.
 
