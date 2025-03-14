@@ -23,7 +23,11 @@
   transition: width 0.3s ease;
   padding: 20px;
   overflow: hidden;
-  position: relative;
+  /* position: relative; */
+  position: fixed;
+  height: 100vh;
+  top: 0;
+  left: 0;
 }
 
 .admin-sidebar.collapsed {
